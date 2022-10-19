@@ -1,4 +1,5 @@
-﻿using PdfSharp.Pdf;
+﻿using PdfSharp.Drawing;
+using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 using System;
 using System.Collections.Generic;
@@ -170,9 +171,20 @@ namespace MergePDF
                 {
                     foreach (var document in pdfs)
                     {
-                        document.Replace(@"\", "/");
-                        PdfDocument importPdf = PdfReader.Open(document, PdfDocumentOpenMode.Import);
-                        CopyPages(importPdf, outPdf);
+                        if (document.Split('.').Last().ToLower() == "pdf")
+                        {
+                            PdfSharp.Pdf.PdfDocument importPdf = PdfSharp.Pdf.IO.PdfReader.Open(document, PdfDocumentOpenMode.Import);
+                            CopyPages(importPdf, outPdf);
+                        }
+                        else
+                        {
+
+                            PdfSharp.Pdf.PdfPage page1 = outPdf.AddPage();
+                            XImage img = XImage.FromFile(document);
+
+                            XGraphics gfx = XGraphics.FromPdfPage(page1, XGraphicsUnit.Presentation);
+                            gfx.DrawImage(img, 0, 0);
+                        }
                     }
                     var outputLocation = savePath.Replace(@"\", "/");
                     outPdf.Save(outputLocation);
@@ -232,9 +244,32 @@ namespace MergePDF
 
         private void btnClearAll_Click(object sender, EventArgs e)
         {
-            panel1.Controls.Clear();
-            CreateInitialSelectors();
-            richConsole.Clear();
+            //panel1.Controls.Clear();
+            //CreateInitialSelectors();
+            //richConsole.Clear();
+
+            string pdfFile = @"E:/工作/PeisClient/Peis.Client.Main/bin/Debug/ReportResult/T2022092800003.pdf";
+            string imgFile = @"E:/工作/PeisClient/Peis.Client.Main/bin/Debug/ReportResult/1.png";
+
+
+
+            using (PdfDocument outPdf = new PdfDocument())
+            {
+                outPdf.PageLayout = PdfPageLayout.SinglePage;
+                PdfDocument importPdf = PdfReader.Open(pdfFile, PdfDocumentOpenMode.Import);
+                CopyPages(importPdf, outPdf);
+
+                PdfPage page1 = outPdf.AddPage();
+
+               
+                XImage img = XImage.FromFile(imgFile);
+        
+                XGraphics gfx = XGraphics.FromPdfPage(page1, XGraphicsUnit.Presentation);
+                gfx.DrawImage(img,0,0);
+
+                var outputLocation = @"E:/工作/PeisClient/Peis.Client.Main/bin/Debug/ReportResult/merge.pdf";
+                outPdf.Save(outputLocation);
+            }
         }
 
 
